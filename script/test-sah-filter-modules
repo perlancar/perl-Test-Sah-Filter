@@ -1,0 +1,97 @@
+#!perl
+
+use 5.010001;
+use strict;
+use warnings;
+
+use Getopt::Long qw(:config bundling no_ignore_case auto_help auto_version);
+use Test::Sah::Filter;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+my %opts = (
+    exclude_modules => [],
+    include_modules => [],
+    test_examples => 1,
+    test_perl_filters => 1,
+    test_js_filters => 1,
+);
+GetOptions(
+    'include-module=s' => $opts{include_modules},
+    '<>' => sub {
+        push @{ $opts{include_modules} }, $_[0];
+    },
+    'exclude-module=s' => $opts{exclude_modules},
+    'E' => sub { $opts{test_examples} = 0 },
+    'test-perl-filters!' => $opts{test_perl_filters},
+    'test-js-filters!' => $opts{test_js_filters},
+);
+
+data_sah_filter_modules_ok(
+    \%opts,
+);
+
+1;
+# ABSTRACT: Test all Data::Sah::Filter::* modules in distribution
+# PODNAME:
+
+=head1 SYNOPSIS
+
+In your dist directory:
+
+ % test-sah-filter-modules [options] [included_module]...
+
+Examples:
+
+ # test all Data::Sah::Filter::* modules in dist
+ % test-sah-filter-modules
+
+ # only test a single module
+ % test-sah-filter-modules --include-module perl::Str::check
+
+ # only test a couple of modules
+ % test-sah-filter-modules perl::Str::check js::Str::downcase
+
+
+=head1 DESCRIPTION
+
+This script is a command-line interface for L<Test::Sah::Filter>'s
+C<sah_filter_modules_ok()> function.
+
+
+=head1 OPTIONS
+
+=over
+
+=item * --include-modules=s
+
+Include a module. Can be specified multiple times. If specified then only
+included modules will be tested.
+
+=item * --exclude-modules=s
+
+Exclude a module. Can be specified multiple times.
+
+=item * -E
+
+This sets C<test_examples> to 0.
+
+=item * --no-test-perl-filters
+
+This sets C<test_perl_filters> to 0.
+
+=item * --no-test-js-filters
+
+This sets C<test_perl_filters> to 0.
+
+=back
+
+
+=head1 SEE ALSO
+
+L<Test::Sah::Filter>
+
+=cut
