@@ -77,15 +77,16 @@ Exclude a module. Can be specified multiple times.
 
 =item * -E
 
-This sets C<test_examples> to 0.
-
-=item * --no-test-perl-filters
-
-This sets C<test_perl_filters> to 0.
+This sets C<test_examples> to 0 to skip testing examples in filter modules.
 
 =item * --no-test-js-filters
 
-This sets C<test_perl_filters> to 0.
+This sets C<test_js_filters> to 0 to skip C<Data::Sah::Filter::js::*> modules.
+
+=item * --no-test-perl-filters
+
+This sets C<test_perl_filters> to 0 to skip C<Data::Sah::Filter::perl::*>
+modules.
 
 =back
 
