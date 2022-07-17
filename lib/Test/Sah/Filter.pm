@@ -54,11 +54,11 @@ sub sah_filter_module_ok {
     my $lang = $1; $lang =~ /\A(js|perl)\z/ or die "Language '$lang' is not supported, only js & perl are currently supported";
 
     if ($lang eq 'perl' && !$opts{test_perl_filters}) {
-        $Test->diag('Perl filters are skipped due to test_perl_filters option set to 0');
+        $Test->diag("Perl filter module '$module' is skipped due to test_perl_filters option set to 0");
         return;
     }
     if ($lang eq 'js' && !$opts{test_js_filters}) {
-        $Test->diag('JS filters are skipped due to test_js_filters option set to 0');
+        $Test->diag("JS filter module '$module' is skipped due to test_js_filters option set to 0");
         return;
     }
 
@@ -106,7 +106,7 @@ sub sah_filter_module_ok {
                         $Test->ok(0, "Args is NOT a valid defhash: $@");
                     }
 
-                    for my $argname (sort keys %${ $meta->{args} }) {
+                    for my $argname (sort keys %{ $meta->{args} // {} }) {
                         my $argspec = $meta->{args}{$argname};
 
                         if (ref $argspec eq 'HASH') {
@@ -129,7 +129,11 @@ sub sah_filter_module_ok {
 
           TEST_EXAMPLES: {
                 last unless $opts{test_examples};
-                last unless $meta->{examples} && @{ $meta->{examples} };
+                unless ($meta->{examples} && @{ $meta->{examples} }) {
+                    $Test->ok(1);
+                    $Test->diag("There are no examples");
+                    last;
+                }
 
                 require Data::Cmp;
 
@@ -148,7 +152,7 @@ sub sah_filter_module_ok {
                     $Test->subtest(
                         "example #$i",
                         sub {
-                            my $filter_rule = [$filter_name, $eg->{filter_args} // {}];
+                            my $filter_rule = [$filter_name1, $eg->{filter_args} // {}];
                             my $filter_code = $gen_filter->(
                                 filter_names=>[$filter_rule],
                                 return_type => 'str_errmsg+val',
@@ -162,13 +166,22 @@ sub sah_filter_module_ok {
                             if ($eg->{valid} // 1) {
                                 if ($actual_errmsg) {
                                     $Test->ok(0, "filtering should succeed but it fails: $actual_errmsg");
-                                } elsif (Data::Cmp::cmp_data($actual_errmsg, $correct_filtered_value) != 0) {
+                                } elsif (Data::Cmp::cmp_data($actual_filtered_value, $correct_filtered_value) != 0) {
+                                    require Data::Dump;
+                                    require Text::Diff;
+                                    my $actual_filtered_value_dmp  = Data::Dump::dump($actual_filtered_value);
+                                    my $correct_filtered_value_dmp = Data::Dump::dump($correct_filtered_value);
+                                    my $diff = Text::Diff::diff(\$actual_filtered_value_dmp, \$correct_filtered_value_dmp);
+                                    $Test->diag("Result difference (actual vs expected): $diff");
+                                    $Test->ok(0, "filtering succeeds but result is not as expected");
                                 } else {
+                                    $Test->ok(1, "filtering succeeds and result is ok");
                                 }
                             } else {
                                 if ($actual_errmsg) {
-
+                                    $Test->ok(1, "filtering fails as expected");
                                 } else {
+                                    $Test->ok(0, "filtering should fail but succeeds");
                                 }
                             }
                         },
@@ -283,7 +296,7 @@ sub sah_filter_modules_ok {
 
                     log_info "Processing module %s ...", $module;
                     my $thismsg = defined $msg ? $msg :
-                        "Sah filter module in $module";
+                        "Sah filter module $module";
                     my $thisok = sah_filter_module_ok(
                         $module, $opts, $thismsg)
                         or $ok = 0;
@@ -333,7 +346,7 @@ All these functions are exported by default.
 
 =head2 sah_filter_module_ok($module [, \%opts ] [, $msg])
 
-Load C<$module and perform tests on it.
+Load C<$module> and perform tests on it.
 
 Available options:
 
@@ -347,10 +360,10 @@ Whether to test examples in filter.
 
 =head2 sah_filter_modules_ok([ \%opts ] [, $msg])
 
-Look for modules in directory C<lib> (or C<blib> instead, if it exists), and
-C<run sah_filter_module_ok()> on each of them.
+Look for modules in directory F<lib> (or F<blib> instead, if it exists), and run
+C<sah_filter_module_ok> on each of them.
 
-Options are the same as in C<sah_filter_module_ok()>, plus:
+Options are the same as in C<sah_filter_module_ok>, plus:
 
 =over
 

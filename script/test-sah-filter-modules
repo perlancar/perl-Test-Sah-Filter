@@ -26,11 +26,11 @@ GetOptions(
     },
     'exclude-module=s' => $opts{exclude_modules},
     'E' => sub { $opts{test_examples} = 0 },
-    'test-perl-filters!' => $opts{test_perl_filters},
-    'test-js-filters!' => $opts{test_js_filters},
+    'test-perl-filters!' => \$opts{test_perl_filters},
+    'test-js-filters!' => \$opts{test_js_filters},
 );
 
-data_sah_filter_modules_ok(
+sah_filter_modules_ok(
     \%opts,
 );
 
