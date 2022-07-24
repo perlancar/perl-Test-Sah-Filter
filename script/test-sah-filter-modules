@@ -55,6 +55,10 @@ Examples:
  # only test a couple of modules
  % test-sah-filter-modules perl::Str::check js::Str::downcase
 
+ # do not test JS filters
+ % test-sah-filter-modules --notest-js
+ % test-sah-filter-modules --no-test-js-filters
+
 
 =head1 DESCRIPTION
 
