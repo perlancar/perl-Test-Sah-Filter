@@ -129,6 +129,12 @@ sub sah_filter_module_ok {
 
           TEST_EXAMPLES: {
                 last unless $opts{test_examples};
+
+                if ($meta->{before_test_examples}) {
+                    log_trace "Executing before_test_examples hook ...";
+                    $meta->{before_test_examples}->();
+                }
+
                 unless ($meta->{examples} && @{ $meta->{examples} }) {
                     $Test->ok(1);
                     $Test->diag("There are no examples");
@@ -187,6 +193,12 @@ sub sah_filter_module_ok {
                         },
                     ); # subtest example #$i
                 } # for $eg
+
+                if ($meta->{after_test_examples}) {
+                    log_trace "Executing after_test_examples hook ...";
+                    $meta->{after_test_examples}->();
+                }
+
             } # TEST_EXAMPLES
             $ok;
         } # subtest
